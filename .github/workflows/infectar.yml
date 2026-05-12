@@ -27,5 +27,5 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: auto
       run: |
-        aws s3 cp output_infected.webp s3://nogle-pics/output_infected.webp \
+        aws s3 cp output_infected.webp s3://nogle-pics/la-vivi-manaba/output_infected.webp \
           --endpoint-url https://366c94c9611100cd543f5f004747c489.r2.cloudflarestorage.com
