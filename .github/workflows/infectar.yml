@@ -1,9 +1,9 @@
-name: Bot Bacteria - Codificador WEBP LSB
+name: Bot Bacteria - Nogle WEBP a R2
 
 on: [push]
 
 jobs:
-  infectar-imagen:
+  infectar-y-subir:
     runs-on: ubuntu-latest
 
     steps:
@@ -15,16 +15,17 @@ jobs:
       with:
         node-version: '20'
 
-    - name: Instalar dependencias
+    - name: Instalar dependencias (Sharp)
       run: npm install
 
-    # Cambiamos la ejecución al nuevo script
-    - name: Inyectar código en la imagen
+    - name: Inyectar código en la imagen (Bacteria WEBP)
       run: node encode-webp.js
 
-    # Cambiamos el archivo que el bot debe guardar
-    - name: Guardar imagen infectada (Artifact)
-      uses: actions/upload-artifact@v4
-      with:
-        name: caballo-de-troya-webp
-        path: output_infected.webp
+    - name: Desplegar imagen infectada a Cloudflare R2 (Nogle)
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: auto
+      run: |
+        aws s3 cp output_infected.webp s3://nogle-pics/output_infected.webp \
+          --endpoint-url https://366c94c9611100cd543f5f004747c489.r2.cloudflarestorage.com
