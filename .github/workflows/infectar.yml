@@ -1,6 +1,9 @@
-name: Bot Bacteria - Nogle WEBP a R2
+name: Bot Bacteria PRO - Dinamico
 
-on: [push]
+on:
+  push:
+    paths:
+      - '**/*.webp' # El bot SOLO se despertará si subes un archivo .webp
 
 jobs:
   infectar-y-subir:
@@ -9,6 +12,25 @@ jobs:
     steps:
     - name: Clonar repositorio
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 2 # Necesario para que el bot pueda leer qué archivo es nuevo
+
+    - name: Detectar qué modelo y archivo se subió
+      id: detect
+      run: |
+        # Busca el archivo .webp que se acaba de subir en el commit
+        ARCHIVO=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }} | grep '\.webp$' | head -n 1)
+        echo "Archivo detectado: $ARCHIVO"
+        
+        # Extrae el nombre de la carpeta (ej. "alya-sanchez" o "la-vivi-manaba")
+        CARPETA=$(dirname "$ARCHIVO")
+        # Extrae el nombre del archivo (ej. "portada.webp")
+        NOMBRE_ARCHIVO=$(basename "$ARCHIVO")
+        
+        # Guardamos las variables para la subida a R2
+        echo "CARPETA=$CARPETA" >> $GITHUB_ENV
+        echo "NOMBRE_ARCHIVO=$NOMBRE_ARCHIVO" >> $GITHUB_ENV
+        echo "ARCHIVO_ORIGINAL=$ARCHIVO" >> $GITHUB_ENV
 
     - name: Configurar Node.js
       uses: actions/setup-node@v4
@@ -18,14 +40,20 @@ jobs:
     - name: Instalar dependencias (Sharp)
       run: npm install
 
+    - name: Preparar archivo para la Bacteria
+      # Copiamos la portada subida y la renombramos a "input.webp" 
+      # para que tu script de Node siempre encuentre el archivo con el mismo nombre
+      run: cp "${{ env.ARCHIVO_ORIGINAL }}" input.webp 
+
     - name: Inyectar código en la imagen (Bacteria WEBP)
       run: node encode-webp.js
 
-    - name: Desplegar imagen infectada a Cloudflare R2 (Nogle)
+    - name: Desplegar imagen infectada a Cloudflare R2
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: auto
+      # Aquí está la magia: Usa las variables para crear la ruta idéntica en tu bucket
       run: |
-        aws s3 cp output_infected.webp s3://nogle-pics/la-vivi-manaba/cap1/01.webp \
+        aws s3 cp output_infected.webp s3://nogle-pics/${{ env.CARPETA }}/${{ env.NOMBRE_ARCHIVO }} \
           --endpoint-url https://366c94c9611100cd543f5f004747c489.r2.cloudflarestorage.com
