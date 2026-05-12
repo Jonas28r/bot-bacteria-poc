@@ -1,0 +1,34 @@
+name: Bot Bacteria - Codificador LSB
+
+# El bot se activa cada vez que haces un "push" al repositorio
+on: [push]
+
+jobs:
+  infectar-imagen:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. El bot descarga el código y la imagen de tu repositorio
+    - name: Clonar repositorio
+      uses: actions/checkout@v4
+
+    # 2. El bot instala el entorno de Node.js
+    - name: Configurar Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    # 3. El bot instala la librería de manipulación de píxeles (Jimp)
+    - name: Instalar dependencias
+      run: npm install
+
+    # 4. El bot ejecuta la mutación
+    - name: Inyectar código en la imagen
+      run: node encode.js
+
+    # 5. El bot guarda la imagen infectada y te la entrega como un archivo descargable
+    - name: Guardar imagen infectada (Artifact)
+      uses: actions/upload-artifact@v4
+      with:
+        name: caballo-de-troya
+        path: output_infected.png
